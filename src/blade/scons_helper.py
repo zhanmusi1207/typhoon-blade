@@ -124,8 +124,9 @@ setup(
         sub_dir_list = dep_file_dir.split('/')
         if len(sub_dir_list) > 1:
             sub_dir = '/'.join(dep_file_dir.split('/')[1:])
+
         if sub_dir:
-            package_sub_dir = os.path.join(package_dir, sub_dir)
+            package_sub_dir = os.path.join(target_dir, sub_dir) #change the package_dir to target_dir inorder to be more convenient
             if not os.path.exists(package_sub_dir):
                 os.makedirs(package_sub_dir)
             sub_init_file = os.path.join(package_sub_dir, '__init__.py')
@@ -133,6 +134,32 @@ setup(
                 sub_f = open(sub_init_file, 'w')
                 sub_f.close()
             shutil.copyfile(f, os.path.join(package_sub_dir, dep_file_basename))
+
+        #added by jamesyue
+        #add the __init__py for all the sub_dirs
+        sub_dirs = map(lambda x: os.path.join(target_dir, '/'.join(sub_dir_list[1:x])), xrange(2, len(sub_dir_list)+1))
+        for tmp_sub_dir in sub_dirs:
+            sub_init_file = os.path.join(tmp_sub_dir, '__init__.py')
+            if not os.path.exists(sub_init_file):
+                sub_f = open(sub_init_file, 'w')
+                sub_f.close()
+    #added by jamesyue
+    #link the target_profile to target_dir
+    link_cmd = 'rm -f %s ; ln -s %s %s' %(target_profile, os.path.join(os.getcwd(),target_profile), target_profile)
+    p = subprocess.Popen(
+            link_cmd,
+            env={},
+            cwd=target_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True,
+            universal_newlines=True)
+    std_out, std_err = p.communicate()
+    if p.returncode:
+        console.info(std_out)
+        console.info(std_err)
+        console.error_exit('failed to link target_profile to target_dir in %s with cwd:%s with cmd:%s' % (target_dir, os.getcwd(), link_cmd))
+        return p.returncode
 
     make_egg_cmd = 'python setup.py bdist_egg'
     p = subprocess.Popen(

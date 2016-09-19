@@ -196,6 +196,11 @@ class CmdArguments(object):
     def __add_generate_arguments(self, parser):
         """Add generate related arguments. """
         parser.add_argument(
+            '--generate-python', dest='generate_python',
+            action='store_true', default=False,
+            help='Generate python libraries.')
+
+        parser.add_argument(
             '--generate-dynamic', dest='generate_dynamic',
             action='store_true', default=False,
             help='Generate dynamic libraries.')

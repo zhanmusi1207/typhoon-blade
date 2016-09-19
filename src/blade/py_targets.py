@@ -46,6 +46,10 @@ class PythonBinaryTarget(Target):
                         blade,
                         kwargs)
 
+        self.blade = blade
+        options = blade.get_options()
+        setattr(options, 'generate_dynamic', True)
+
         if prebuilt:
             self.type = 'prebuilt_py_binary'
 
@@ -79,8 +83,8 @@ class PythonBinaryTarget(Target):
         dep_var_list = []
         self.targets = self.blade.get_build_targets()
         for dep in self.expanded_deps:
-            binary_files += targets[dep].data.get('python_sources', [])
-            dep_var_list += targets[dep].data.get('python_vars', [])
+            binary_files += self.targets[dep].data.get('python_sources', [])
+            dep_var_list += self.targets[dep].data.get('python_vars', [])
 
         target_egg_file = '%s.egg' % self._target_file_path()
         python_binary_var = '%s_python_binary_var' % (
@@ -94,6 +98,59 @@ class PythonBinaryTarget(Target):
             self._write_rule('%s.Depends(%s, %s)' % (
                              env_name, python_binary_var, var))
 
+        for dynamic_dep_var in self._dynamic_deps_list():
+            self._write_rule('%s.Depends(%s, %s)' % (
+                             env_name, python_binary_var, dynamic_dep_var))
+
+    def _dep_is_library(self, dep):
+        """_dep_is_library.
+
+        Returns
+        -----------
+        True or False: Whether this dep target is library or not.
+
+        Description
+        -----------
+        Whether this dep target is library or not.
+
+        """
+        build_targets = self.blade.get_build_targets()
+        target_type = build_targets[dep].type
+        return target_type.endswith('_library')
+
+    def _dynamic_deps_list(self):
+        """_dynamic_deps_list.
+
+        Returns
+        -----------
+        lib_list: the libs list to be dynamically linked into dynamic library
+
+        Description
+        -----------
+        It will find the libs needed to be linked into the target dynamically.
+
+        """
+        build_targets = self.blade.get_build_targets()
+        deps = self.expanded_deps
+        lib_list = []
+        for lib in deps:
+            if not self._dep_is_library(lib):
+                continue
+
+            if (build_targets[lib].type == 'cc_library' and
+                not build_targets[lib].srcs):
+                continue
+            # system lib
+            if lib[0] == '#':
+                pass
+            else:
+                lib_name = self._generate_variable_name(lib[0],
+                                                        lib[1],
+                                                        'dynamic')
+
+                lib_list.append(lib_name)
+
+        return lib_list
 
 def py_binary(name,
               srcs=[],

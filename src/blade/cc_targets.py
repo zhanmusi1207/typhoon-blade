@@ -417,7 +417,8 @@ class CcTarget(Target):
             else:
                 lib_name = self._generate_variable_name(lib[0],
                                                         lib[1],
-                                                        'dynamic')
+                                                        )
+                                                        #'dynamic')
 
             lib_list.append(lib_name)
 
@@ -532,22 +533,38 @@ class CcTarget(Target):
         It will output the dynamic_cc_library rule into the buffer.
 
         """
+        env_name = self._env_name()
+        var_name = self._generate_variable_name(self.path, self.name, 'dynamic')
+
+        platform = self.blade.get_scons_platform()
+        if platform.get_gcc_version() > '4.5':
+            link_flag_list = ['-static-libgcc', '-static-libstdc++']
+            self._write_rule('%s.Append(LINKFLAGS=%s)' % (env_name, link_flag_list))
+
+        (link_all_symbols_lib_list,
+         lib_str,
+         whole_link_flags) = self._get_static_deps_lib_list()
+        if whole_link_flags:
+            self._write_rule(
+                    '%s.Append(LINKFLAGS=[%s])' % (env_name, whole_link_flags))
+
         self._setup_link_flags()
 
-        var_name = self._generate_variable_name(self.path,
-                                                self.name,
-                                                'dynamic')
+        self._write_rule('%s = %s.SharedLibrary("%s", %s, %s)' % (
+            var_name,
+            env_name,
+            self._target_file_path(),
+            self._objs_name(),
+            lib_str))
 
-        lib_str = self._get_dynamic_deps_lib_list()
-        if self.srcs or self.expanded_deps:
-            self._write_rule('%s.Append(LINKFLAGS=["-Xlinker", "--no-undefined"])'
-                             % self._env_name())
-            self._write_rule('%s = %s.SharedLibrary("%s", %s, %s)' % (
-                    var_name,
-                    self._env_name(),
-                    self._target_file_path(),
-                    self._objs_name(),
-                    lib_str))
+        if link_all_symbols_lib_list:
+            self._write_rule('%s.Depends(%s, [%s])' % (
+                    env_name, var_name, ', '.join(link_all_symbols_lib_list)))
+
+        #self._write_rpath_links()
+        self._write_rule('%s.Append(LINKFLAGS=str(version_obj[0]))' % env_name)
+        self._write_rule('%s.Requires(%s, version_obj)' % (
+                         env_name, var_name))
 
     def _cc_objects_rules(self):
         """_cc_objects_rules.
@@ -1069,6 +1086,7 @@ class CcTest(CcBinary):
                  heap_check,
                  heap_check_debug,
                  blade,
+                 use_gtest_main,
                  kwargs):
         """Init method.
 
@@ -1103,7 +1121,8 @@ class CcTest(CcBinary):
 
         # Hardcode deps rule to thirdparty gtest main lib.
         self._add_hardcode_library(gtest_lib)
-        self._add_hardcode_library(gtest_main_lib)
+        if use_gtest_main: 
+            self._add_hardcode_library(gtest_main_lib)
 
         if heap_check is None:
             heap_check = cc_test_config.get('heap_check', '')
@@ -1141,6 +1160,7 @@ def cc_test(name,
             exclusive=False,
             heap_check=None,
             heap_check_debug=False,
+            use_gtest_main=True,
             **kwargs):
     """cc_test target. """
     cc_test_target = CcTest(name,
@@ -1160,6 +1180,7 @@ def cc_test(name,
                             heap_check,
                             heap_check_debug,
                             blade.blade,
+                            use_gtest_main,
                             kwargs)
     blade.blade.register_target(cc_test_target)
 
