@@ -145,22 +145,23 @@ setup(
                 sub_f.close()
     #added by jamesyue
     #link the target_profile to target_dir
-    link_cmd = 'rm -f %s ; ln -s %s %s' %(target_profile, os.path.join(os.getcwd(),target_profile), target_profile)
-    p = subprocess.Popen(
-            link_cmd,
-            env={},
-            cwd=target_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=True,
-            universal_newlines=True)
-    std_out, std_err = p.communicate()
-    if p.returncode:
-        console.info(std_out)
-        console.info(std_err)
-        console.error_exit('failed to link target_profile to target_dir in %s with cwd:%s with cmd:%s' % (target_dir, os.getcwd(), link_cmd))
-        return p.returncode
+    # link_cmd = 'rm -f %s ; ln -s %s %s' %(target_profile, os.path.join(os.getcwd(),target_profile), target_profile)
+    # p = subprocess.Popen(
+    #         link_cmd,
+    #         env={},
+    #         cwd=target_dir,
+    #         stdout=subprocess.PIPE,
+    #         stderr=subprocess.PIPE,
+    #         shell=True,
+    #         universal_newlines=True)
+    # std_out, std_err = p.communicate()
+    # if p.returncode:
+    #     console.info(std_out)
+    #     console.info(std_err)
+    #     console.error_exit('failed to link target_profile to target_dir in %s with cwd:%s with cmd:%s' % (target_dir, os.getcwd(), link_cmd))
+    #     return p.returncode
 
+    #stop making egg by jamesyue
     make_egg_cmd = 'python setup.py bdist_egg'
     p = subprocess.Popen(
             make_egg_cmd,

@@ -121,10 +121,13 @@ class CuTarget(CcTarget):
             nvcc_flags += self._get_optimize_flags()
         #added by jamesyue
         nvcc_flags += self.data.get('extra_cppflags', [])
+        #extra flags for k40 and m40
+        nvcc_flags += ['-gencode=arch=compute_35,code=sm_35','-gencode=arch=compute_50,code=sm_50']
+ 
 
         # Incs
         incs = self.data.get('incs', [])
-        new_incs_list = [os.path.join(self.path, inc) for inc in incs]
+        new_incs_list = [ inc for inc in incs]
         new_incs_list += self._export_incs_list()
         # Remove duplicate items in incs list and keep the order
         incs_list = []

@@ -207,6 +207,8 @@ class CcFlagsManager(object):
         """Get the flags that are not warning flags. """
         flags_except_warning = ['-m%s' % self.options.m, '-mcx16', '-pipe']
         linkflags = ['-m%s' % self.options.m]
+        #linkflags.append('--hash-style=sysv')
+
 
         # Debigging information setting
         if self.options.no_debug_info:

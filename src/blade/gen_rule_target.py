@@ -34,6 +34,7 @@ class GenRuleTarget(Target):
                  outs,
                  cmd,
                  blade,
+                 export_incs,
                  kwargs):
         """Init method.
 
@@ -43,6 +44,7 @@ class GenRuleTarget(Target):
         srcs = var_to_list(srcs)
         deps = var_to_list(deps)
         outs = var_to_list(outs)
+        export_incs = var_to_list(export_incs)
 
         Target.__init__(self,
                         name,
@@ -54,6 +56,7 @@ class GenRuleTarget(Target):
 
         self.data['outs'] = outs
         self.data['cmd'] = cmd
+        self.data['export_incs'] = export_incs
 
     def _srcs_list(self, path, srcs):
         """Returns srcs list. """
@@ -85,11 +88,16 @@ class GenRuleTarget(Target):
         else:
             srcs_str = self._srcs_list(self.path, self.srcs)
         cmd = self.data['cmd']
+        #added by jamesyue
+        cmd = cmd.replace('$BUILD', self.build_path)
         cmd = cmd.replace('$SRCS', '$SOURCES')
         cmd = cmd.replace('$OUTS', '$TARGETS')
         cmd = cmd.replace('$FIRST_SRC', '$SOURCE')
         cmd = cmd.replace('$FIRST_OUT', '$TARGET')
         cmd = cmd.replace('$BUILD_DIR', self.build_path)
+	cmd = cmd.replace('$SRC_PATH', self.blade.get_current_source_path())
+	cmd = cmd.replace('$PATH', self.path)
+	cmd = cmd.replace('$NAME', self.name)
         self._write_rule('%s = %s.Command([%s], [%s], "%s")' % (
                 var_name,
                 env_name,
@@ -131,6 +139,7 @@ def gen_rule(name,
              deps=[],
              outs=[],
              cmd='',
+             export_incs=[],
              **kwargs):
     """scons_gen_rule. """
     gen_rule_target = GenRuleTarget(name,
@@ -139,6 +148,7 @@ def gen_rule(name,
                                     outs,
                                     cmd,
                                     blade.blade,
+                                    export_incs,
                                     kwargs)
     blade.blade.register_target(gen_rule_target)
 

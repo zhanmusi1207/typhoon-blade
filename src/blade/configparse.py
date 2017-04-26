@@ -113,6 +113,7 @@ class BladeConfig(object):
         try:
             self.current_file_name = filename
             if os.path.exists(filename):
+                from helper import add_BUILD_var
                 execfile(filename)
         except SystemExit:
             console.error_exit('Parse error in config file %s, exit...' % filename)

@@ -48,6 +48,8 @@ class CcTarget(Target):
         Init the cc target.
 
         """
+        if 'target_bases' in kwargs:
+            kwargs.pop('target_bases')
         srcs = var_to_list(srcs)
         deps = var_to_list(deps)
         defs = var_to_list(defs)
@@ -224,6 +226,7 @@ class CcTarget(Target):
         """linkflags. """
         cc_config = configparse.blade_config.get_config('cc_config')
         linkflags = cc_config['linkflags']
+
         if linkflags:
             self._write_rule('%s.Append(LINKFLAGS=%s)' % (self._env_name(), linkflags))
 
@@ -341,8 +344,8 @@ class CcTarget(Target):
             if not lib:
                 continue
 
-            if not self._dep_is_library(lib):
-                continue
+            #if not self._dep_is_library(lib):
+            #    continue
 
             # system lib
             if lib[0] == '#':
@@ -565,6 +568,25 @@ class CcTarget(Target):
         self._write_rule('%s.Append(LINKFLAGS=str(version_obj[0]))' % env_name)
         self._write_rule('%s.Requires(%s, version_obj)' % (
                          env_name, var_name))
+        """
+        #old code
+        self._setup_link_flags()
+
+        var_name = self._generate_variable_name(self.path,
+                                                self.name,
+                                                'dynamic')
+
+        lib_str = self._get_dynamic_deps_lib_list()
+        if self.srcs or self.expanded_deps:
+            self._write_rule('%s.Append(LINKFLAGS=["-Xlinker", "--no-undefined"])'
+                             % self._env_name())
+            self._write_rule('%s = %s.SharedLibrary("%s", %s, %s)' % (
+                    var_name,
+                    self._env_name(),
+                    self._target_file_path(),
+                    self._objs_name(),
+                    lib_str))
+        """
 
     def _cc_objects_rules(self):
         """_cc_objects_rules.

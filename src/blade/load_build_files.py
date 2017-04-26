@@ -103,7 +103,6 @@ IGNORE_IF_FAIL = 0
 WARN_IF_FAIL = 1
 ABORT_IF_FAIL = 2
 
-
 def _load_build_file(source_dir, action_if_fail, processed_source_dirs, blade):
     """_load_build_file to load the BUILD and place the targets into database.
 
@@ -140,7 +139,8 @@ def _load_build_file(source_dir, action_if_fail, processed_source_dirs, blade):
         try:
             # The magic here is that a BUILD file is a Python script,
             # which can be loaded and executed by execfile().
-            execfile(build_file, build_rules.get_all(), None)
+            from helper import GET_BUILD_VAR
+            execfile(build_file, build_rules.get_all(), {'GET_BUILD_VAR':GET_BUILD_VAR})
         except SystemExit:
             console.error_exit('%s: fatal error, exit...' % build_file)
         except:

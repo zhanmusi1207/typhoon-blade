@@ -224,7 +224,7 @@ class CmdArguments(object):
             help='Generate scons script for debug purpose.')
 
         parser.add_argument(
-            '-j', '--jobs', dest='jobs', type=int, default=0,
+            '-j', '--jobs', dest='jobs', type=int, default=0, 
             help=('Specifies the number of jobs (commands) to '
                   'run simultaneously.'))
 

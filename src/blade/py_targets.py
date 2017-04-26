@@ -87,7 +87,8 @@ class PythonBinaryTarget(Target):
             dep_var_list += self.targets[dep].data.get('python_vars', [])
 
         target_egg_file = '%s.egg' % self._target_file_path()
-        python_binary_var = '%s_python_binary_var' % (
+        #python_binary_var = '%s_python_binary_var' % (
+        python_binary_var = '%s' % (
             self._generate_variable_name(self.path, self.name))
         self._write_rule('%s = %s.PythonBinary(["%s"], %s)' % (
                           python_binary_var,
